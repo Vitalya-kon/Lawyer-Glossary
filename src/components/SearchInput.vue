@@ -16,7 +16,7 @@ watch(searchQuery, (newVal) => {
 watchEffect(() => {
     if(!searchQuery.value) return
     const dbRef = firebaseRef(db, '/');
-    const capitalizedSearchQuery = searchQuery.value.charAt(0).toUpperCase() + searchQuery.value.slice(1);
+    const capitalizedSearchQuery = searchQuery.value.toUpperCase();
     const q = query(dbRef, orderByKey(), startAt(capitalizedSearchQuery), endAt(capitalizedSearchQuery+"\uf8ff"));
     onValue(q, (snapshot) => {
         output.value = [];
@@ -29,6 +29,10 @@ watchEffect(() => {
         console.error("Ошибка чтения данных: ", error);
     });
 })
+
+const handleCustomEvent = (data) => {
+  output.value = data.output;
+}
 
 </script>
 
@@ -46,6 +50,6 @@ watchEffect(() => {
             </div>
         </form>
     </div>
-    <AnswerSection :data="output" v-if="output.length > 0"/>
+    <AnswerSection @custom-event="handleCustomEvent" :data="output" v-if="output.length > 0"/>
     <AlphaviteSearch v-else/>
 </template>
