@@ -6,7 +6,6 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base:  '/legal_glossary',
   plugins: [
     vue(),
     vueJsx(),
@@ -16,4 +15,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  base: process.env.NODE_ENV === 'production' ? '/' : '/legal_glossary/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets'
+  }
 })
