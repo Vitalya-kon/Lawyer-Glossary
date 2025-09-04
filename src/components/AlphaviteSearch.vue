@@ -22,15 +22,17 @@ const searchLetter = (letter) => {
     });
 }
 
-
+const handleCustomEvent = (data) => {
+  output.value = data.output;
+}
 
 </script>
 
 <template>
-    <div class="container mx-auto px-4 lg:max-w-60 lg:mt-28 mt-16 pb-20" v-if="output.length == 0">
-        <div data-aos="fade-up" class="lg:mt-6 mt-2 bg-gray-500 bg-opacity-80 p-6 rounded-lg">    
-            <h2 class="text-center font-manrope mb-4 lg:mb-8 text-white text-xl lg:text-2xl font-semibold">Поиск по алфавиту</h2>
-            <div class=" px-1 md:px-20 lg:px-52 lg:py-10 flex flex-wrap gap-4 justify-center">
+    <div class="container mx-auto px-4 lg:max-w-60 lg:mt-12 mt-6 pb-20" v-if="output.length == 0">
+        <div data-aos="fade-up" class="lg:mt-6 mt-2 bg-gray-700 bg-opacity-90 p-6 rounded-lg">    
+            <h2 class="text-center font-manrope text-white text-xl lg:text-2xl font-semibold">Поиск по алфавиту</h2>
+            <div class=" px-1 md:px-20 lg:px-24 lg:py-10 flex flex-wrap gap-4 justify-center">
                 <span @click="searchLetter('А')" class="item">А</span>
                 <span @click="searchLetter('Б')" class="item">Б</span>
                 <span @click="searchLetter('В')" class="item">В</span>
@@ -66,7 +68,7 @@ const searchLetter = (letter) => {
 
         </div>
     </div>
-    <AnswerSection :data="output" v-else/>
+    <AnswerSection @custom-event="handleCustomEvent" :data="output" v-else/>
 </template>
 
 <style scoped>
