@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref as vueRef, watch, watchEffect } from 'vue'
+import { db, ref as firebaseRef, onValue, query, orderByKey, startAt, endAt } from '../firebaseeDB'
+
 import { PaginationBar } from 'v-page'
 import type { PageInfo } from 'v-page/types'
 
@@ -7,6 +10,8 @@ import { initFlowbite } from 'flowbite'
 
 const props = defineProps(['data'])
 const emit = defineEmits(['custom-event'])
+
+const outputResult = vueRef(props.data)
 
 const isCopy = ref({})
 const pageNumber = ref(1)
@@ -45,15 +50,63 @@ const copyToClipboard = async (text) => {
 }
 
 
+
+const searchLetter = (letter) => {
+    const dbRef = firebaseRef(db, '/');
+    const capitalizedLetter = letter.toUpperCase();
+    const q = query(dbRef, orderByKey(), startAt(capitalizedLetter), endAt(capitalizedLetter + "\uf8ff"));
+    onValue(q, (snapshot) => {
+        outputResult.value = [];
+        snapshot.forEach((childSnapshot) => {
+            var childKey = childSnapshot.key;
+            var childValue = childSnapshot.val();
+            outputResult.value.push({key: childKey, value: childValue});
+        });
+    }, (error) => {
+        console.error("Ошибка чтения данных: ", error);
+    });
+}
+
+
 </script>
 
 <template>
     <div class="container mx-auto px-4 lg:max-w-60 lg:mt-4 mt-2 pb-20" >
-        <div class="cursor-pointer" @click="backToStart">
+        <div class="cursor-pointer flex gap-4" @click="backToStart">
             <svg width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="" stroke-width="0"></g><g id="" stroke-linecap="round" stroke-linejoin="round"></g><g id=""> <path d="M11 9L8 12M8 12L11 15M8 12H16M7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V7.2C20 6.0799 20 5.51984 19.782 5.09202C19.5903 4.71569 19.2843 4.40973 18.908 4.21799C18.4802 4 17.9201 4 16.8 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.07989 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.07989 20 7.2 20Z" stroke="#374151e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            <div class="w-full px-1 md:px-4 lg:px-6 py-4 flex lg:flex-wrap flex-nowrap overflow-x-auto gap-4 justify-start lg:justify-center">
+                <span @click.stop="searchLetter('А')" class="item">А</span>
+                <span @click.stop="searchLetter('Б')" class="item">Б</span>
+                <span @click.stop="searchLetter('В')" class="item">В</span>
+                <span @click.stop="searchLetter('Г')" class="item">Г</span>
+                <span @click.stop="searchLetter('Д')" class="item">Д</span>
+                <span @click.stop="searchLetter('Е')" class="item">Е</span>
+                <span @click.stop="searchLetter('Ж')" class="item">Ж</span>
+                <span @click.stop="searchLetter('З')" class="item">З</span>
+                <span @click.stop="searchLetter('И')" class="item">И</span>
+                <span @click.stop="searchLetter('К')" class="item">К</span>
+                <span @click.stop="searchLetter('Л')" class="item">Л</span>
+                <span @click.stop="searchLetter('М')" class="item">М</span>
+                <span @click.stop="searchLetter('Н')" class="item">Н</span>
+                <span @click.stop="searchLetter('О')" class="item">О</span>
+                <span @click.stop="searchLetter('П')" class="item">П</span>
+                <span @click.stop="searchLetter('Р')" class="item">Р</span>
+                <span @click.stop="searchLetter('С')" class="item">С</span>
+                <span @click.stop="searchLetter('Т')" class="item">Т</span>
+                <span @click.stop="searchLetter('У')" class="item">У</span>
+                <span @click.stop="searchLetter('Ф')" class="item">Ф</span>
+                <span @click.stop="searchLetter('Х')" class="item">Х</span>
+                <span @click.stop="searchLetter('Ц')" class="item">Ц</span>
+                <span @click.stop="searchLetter('Ч')" class="item">Ч</span>
+                <span @click.stop="searchLetter('Ш')" class="item">Ш</span>
+                <span @click.stop="searchLetter('Щ')" class="item">Щ</span>
+                <span @click.stop="searchLetter('Э')" class="item">Э</span>
+                <span @click.stop="searchLetter('Ю')" class="item">Ю</span>
+                <span @click.stop="searchLetter('Я')" class="item">Я</span>
+            </div>  
         </div>
-        <div data-aos="fade-up" v-for="(item, index) in props.data" :key="index" class="lg:mt-6 mt-2 bg-gray-700 bg-opacity-90 p-6 rounded-lg" >           
-            <div class="relative" v-if="props.data && props.data.length">
+        <div data-aos="fade-up" v-for="(item, index) in outputResult" :key="index" class="lg:mt-6 mt-2 bg-gray-700 bg-opacity-90 p-6 rounded-lg" >           
+            <div class="relative" v-if="outputResult && outputResult.length">
                 <div class="absolute -top-3 lg:top-0 -right-4 lg:right-3 cursor-pointer" @click="copyToClipboard(item.key + ' ' + item.value); isCopy[index] = !isCopy[index]">
                     <span v-if="!isCopy[index]">
                         <svg  width="32px" height="32px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="" stroke-width="0"></g><g id="" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 11C6 8.17157 6 6.75736 6.87868 5.87868C7.75736 5 9.17157 5 12 5H15C17.8284 5 19.2426 5 20.1213 5.87868C21 6.75736 21 8.17157 21 11V16C21 18.8284 21 20.2426 20.1213 21.1213C19.2426 22 17.8284 22 15 22H12C9.17157 22 7.75736 22 6.87868 21.1213C6 20.2426 6 18.8284 6 16V11Z" stroke="#f5f5f5" stroke-width="1.5"></path> <path opacity="0.5" d="M6 19C4.34315 19 3 17.6569 3 16V10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H15C16.6569 2 18 3.34315 18 5" stroke="#f5f5f5" stroke-width="1.5"></path> </g></svg>
@@ -87,5 +140,9 @@ const copyToClipboard = async (text) => {
 
 .v-pagination ul li a{
     @apply p-2 text-2xl
+}
+.item{
+    @apply font-bold font-manrope text-gray-800 text-sm bg-yellow-100  box-border
+    rounded-lg py-1.5 px-5 text-center cursor-pointer transition-all hover:bg-yellow-200;
 }
 </style>
