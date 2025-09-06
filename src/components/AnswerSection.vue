@@ -1,22 +1,27 @@
 <script setup lang="ts">
-import { ref as vueRef, watch, watchEffect } from 'vue'
+import { ref, watch, watchEffect, computed, onMounted } from 'vue'
 import { db, ref as firebaseRef, onValue, query, orderByKey, startAt, endAt } from '../firebaseeDB'
 
 import { PaginationBar } from 'v-page'
 import type { PageInfo } from 'v-page/types'
 
-import { onMounted, ref } from 'vue'
 import { initFlowbite } from 'flowbite'
 
 const props = defineProps(['data'])
 const emit = defineEmits(['custom-event'])
 
-const outputResult = vueRef(props.data)
+// Используем computed свойство для реактивного обновления
+const outputResult = computed(() => props.data)
 
 const isCopy = ref({})
 const pageNumber = ref(1)
 const totalRow = ref(100)
 const list = ref([])
+
+// Добавляем watcher для отслеживания изменений пропса
+watch(() => props.data, (newData) => {
+  console.log('Data updated:', newData)
+}, { deep: true })
 
 onMounted(() => {
     console.log(props.data); // Выводит пропс data в консоль
@@ -24,7 +29,6 @@ onMounted(() => {
 })
 
 const backToStart = () => {
-    // location.reload();
     emit('custom-event', {
         output: '',
     })
@@ -37,10 +41,9 @@ const change = (data: PageInfo): void =>{
     pageNumber: data.pageNumber,
     pageSize: data.pageSize
   }
-  
 }
 
-const copyToClipboard = async (text) => {
+const copyToClipboard = async (text: string) => {
     try {
         await navigator.clipboard.writeText(text);
         console.log('Скопировано в буфер обмена');
@@ -49,25 +52,26 @@ const copyToClipboard = async (text) => {
     }
 }
 
-
-
-const searchLetter = (letter) => {
+const searchLetter = (letter: string) => {
     const dbRef = firebaseRef(db, '/');
     const capitalizedLetter = letter.toUpperCase();
     const q = query(dbRef, orderByKey(), startAt(capitalizedLetter), endAt(capitalizedLetter + "\uf8ff"));
     onValue(q, (snapshot) => {
-        outputResult.value = [];
+        const results = [];
         snapshot.forEach((childSnapshot) => {
             var childKey = childSnapshot.key;
             var childValue = childSnapshot.val();
-            outputResult.value.push({key: childKey, value: childValue});
+            results.push({key: childKey, value: childValue});
+        });
+        
+        // Эмитим событие с результатами поиска по букве
+        emit('custom-event', {
+            output: results
         });
     }, (error) => {
         console.error("Ошибка чтения данных: ", error);
     });
 }
-
-
 </script>
 
 <template>
@@ -136,8 +140,6 @@ const searchLetter = (letter) => {
     </div>
 </template>
 <style scoped>
-
-
 .v-pagination ul li a{
     @apply p-2 text-2xl
 }
